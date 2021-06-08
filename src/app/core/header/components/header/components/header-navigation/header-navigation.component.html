@@ -1,13 +1,19 @@
 <nav class="header-menu">
   <ul class="header-menu__list">
     <ng-container #desktopPart *ngIf="($isMobile | async) === false">
+      <li class="header-menu__list-item">
+        <span routerLink="/buy-crypto" class="header-menu__link">Buy crypto</span>
+      </li>
+
       <li
         class="header-menu__list-item header-menu__toggle-indicator"
         [ngClass]="{ 'header-menu__togglable-indicator_opened': false }"
         mat-button
         [matMenuTriggerFor]="about"
       >
-        <span class="header-menu__link">{{ 'navigation.about' | translate }}</span>
+        <span class="header-menu__link header-menu__link_pr">{{
+          'navigation.about' | translate
+        }}</span>
       </li>
       <mat-menu class="header-menu__sublist-container" #about="matMenu">
         <ul class="header-menu__sublist">
@@ -27,18 +33,22 @@
             }}</span>
           </li>
           <li class="header-menu__sublist-item">
-            <span
+            <a
               href="https://rubic.finance/"
               target="_blank"
               class="header-menu__sublink"
               rel="noopener"
-              >{{ 'navigation.project' | translate }}</span
+              >{{ 'navigation.project' | translate }}</a
             >
           </li>
         </ul>
       </mat-menu>
     </ng-container>
+
     <ng-container #mobilePart *ngIf="$isMobile | async">
+      <li class="header-menu__list-item">
+        <a routerLink="/buy-crypto" class="header-menu__link">Buy crypto</a>
+      </li>
       <li class="header-menu__list-item">
         <a routerLink="/faq" class="header-menu__link">{{ 'navigation.faq' | translate }}</a>
       </li>

@@ -1,4 +1,4 @@
-@import '../../../../../../../scss/mixins';
+@import 'src/scss/mixins';
 
 $mobile-width: 1024;
 $main-color: #4aa956;
@@ -15,7 +15,6 @@ $main-color: #4aa956;
   &::before {
     position: absolute;
     top: 50%;
-    right: 0;
     right: 0;
 
     width: 1px;
@@ -90,16 +89,19 @@ $main-color: #4aa956;
   &__link {
     display: inline-block;
     padding: 9px 25px;
-    padding-right: 40px;
 
     color: $main-color;
-    text-decoration: none;
     text-decoration: none;
     vertical-align: middle;
 
     cursor: pointer;
+
     @include b($mobile-width) {
       padding: 15px;
+    }
+
+    &_pr {
+      padding-right: 40px;
     }
 
     &:hover {

@@ -44,6 +44,11 @@ const routes: Routes = [
       )
   },
   {
+    path: 'buy-crypto',
+    loadChildren: () =>
+      import('./features/buy-crypto-page/buy-crypto-page.module').then(m => m.BuyCryptoPageModule)
+  },
+  {
     path: 'about',
     loadChildren: () =>
       import('./features/features-page/features-page.module').then(m => m.FeaturesPageModule)

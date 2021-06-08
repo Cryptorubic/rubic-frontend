@@ -1,0 +1,23 @@
+<div class="buy-crypto">
+  <div class="buy-crypto__header header">
+    <button
+      class="header__go-back-button"
+      aria-label="Go on previous page"
+      (click)="goOnPreviousPage()"
+    >
+      <img src="assets/images/icons/arrow/go-back-arrow.svg" alt="arrow" />
+    </button>
+    <span class="header__title">Buy crypto</span>
+  </div>
+
+  <div class="buy-crypto__iframe-container">
+    <iframe
+      [src]="iframeUrl"
+      allow="accelerometer; autoplay; camera; gyroscope; payment"
+      width="100%"
+      height="100%"
+    >
+      Your browser does not support iframes.
+    </iframe>
+  </div>
+</div>
