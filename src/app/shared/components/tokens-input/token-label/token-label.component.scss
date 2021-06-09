@@ -21,13 +21,14 @@
 
   &__image-container {
     width: 39px;
-    height: 39px;
+    height: 45px;
     margin-right: 15px;
   }
 
   img {
     max-width: 39px;
-    max-height: 39px;
+    height: initial;
+    max-height: 45px;
   }
 
   &_selected {

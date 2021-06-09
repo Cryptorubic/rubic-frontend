@@ -189,11 +189,11 @@
 
       <a
         class="swap-box__blockchain-link"
-        [href]="BLOCKCHAIN_DATA[toBlockchain.key]?.link"
+        [href]="BLOCKCHAINS_DATA[toBlockchain.key]?.link"
         target="_blank"
       >
         {{ 'bridgePage.whatIs' | translate }}
-        {{ BLOCKCHAIN_DATA[toBlockchain.key]?.caption }}{{ 'bridgePage.whatIsAfter' | translate }}?
+        {{ BLOCKCHAINS_DATA[toBlockchain.key]?.caption }}{{ 'bridgePage.whatIsAfter' | translate }}
       </a>
     </div>
   </div>
@@ -220,7 +220,8 @@
       target="_blank"
       class="confirm-section__blockchain-link"
       [ngClass]="{
-        'confirm-section__blockchain-link_opacity': providerData.img === 'Polygon' || providerData.img === 'XDai'
+        'confirm-section__blockchain-link_opacity':
+          providerData.img === 'Polygon' || providerData.img === 'XDai'
       }"
     >
       <span>{{ 'bridgePage.assistanceOf' | translate }}</span>

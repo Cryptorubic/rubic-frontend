@@ -95,4 +95,15 @@ const wrbc = {
   price: 2
 };
 
-export const coingeckoTestTokens = [eth, weenus, yeenus, xeenus, wsatt, rbc, bnb, wrbc];
+const matic = {
+  name: 'Matic Network',
+  symbol: 'MATIC',
+  blockchain: BLOCKCHAIN_NAME.POLYGON,
+  address: '0x0000000000000000000000000000000000000000',
+  decimals: 18,
+  image: 'http://dev-api.rubic.exchange/media/token_images/MATIC_logo.png',
+  rank: 1,
+  price: 1
+};
+
+export const coingeckoTestTokens = [eth, weenus, yeenus, xeenus, wsatt, rbc, bnb, wrbc, matic];

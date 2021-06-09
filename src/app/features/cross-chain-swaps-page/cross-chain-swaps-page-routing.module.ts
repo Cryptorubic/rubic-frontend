@@ -13,8 +13,14 @@ const routes: Routes = [
       },
       {
         path: 'get-bnb',
+        redirectTo: 'crypto-tap'
+      },
+      {
+        path: 'crypto-tap',
         loadChildren: () =>
-          import('./get-bnb-page/get-bnb-page.module').then(m => m.GetBnbPageModule)
+          import(
+            'src/app/features/cross-chain-swaps-page/crypto-tap-page/crypto-tap-page.module'
+          ).then(m => m.CryptoTapPageModule)
       }
     ]
   }

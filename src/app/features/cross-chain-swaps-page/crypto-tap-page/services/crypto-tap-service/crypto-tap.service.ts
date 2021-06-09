@@ -2,7 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpService } from 'src/app/core/services/http/http.service';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { GetBnbTrade } from 'src/app/features/cross-chain-swaps-page/get-bnb-page/models/GetBnbTrade';
+import {
+  CryptoTapToken,
+  CryptoTapTrade
+} from 'src/app/features/cross-chain-swaps-page/crypto-tap-page/models/CryptoTapTrade';
 import { Web3PublicService } from 'src/app/core/services/blockchain/web3-public-service/web3-public.service';
 import { BLOCKCHAIN_NAME } from 'src/app/shared/models/blockchain/BLOCKCHAIN_NAME';
 import { MetamaskError } from 'src/app/shared/models/errors/provider/MetamaskError';
@@ -13,12 +16,13 @@ import { UseTestingModeService } from 'src/app/core/services/use-testing-mode/us
 import InsufficientFundsError from 'src/app/shared/models/errors/instant-trade/InsufficientFundsError';
 import { Web3Public } from 'src/app/core/services/blockchain/web3-public-service/Web3Public';
 import BigNumber from 'bignumber.js';
-import { GetBnbToken } from 'src/app/features/cross-chain-swaps-page/get-bnb-page/models/GetBnbToken';
 import SwapToken from 'src/app/shared/models/tokens/SwapToken';
-import { GetBnbApiService } from 'src/app/core/services/backend/get-bnb-api/get-bnb-api.service';
+import { CryptoTapApiService } from 'src/app/core/services/backend/crypto-tap-api/crypto-tap-api.service';
+import { TranslateService } from '@ngx-translate/core';
+import { TransactionReceipt } from 'web3-eth';
+import { ProviderConnectorService } from 'src/app/core/services/blockchain/provider-connector/provider-connector.service';
+import { ErrorsService } from 'src/app/core/services/errors/errors.service';
 import { ABI, contractAddressEthereum, contractAddressKovan } from './constants/ethContract';
-import { ProviderConnectorService } from '../../../../../core/services/blockchain/provider-connector/provider-connector.service';
-import { ErrorsService } from '../../../../../core/services/errors/errors.service';
 
 interface EstimatedAmountResponse {
   from_amount: number;
@@ -27,8 +31,8 @@ interface EstimatedAmountResponse {
 }
 
 @Injectable()
-export class GetBnbService {
-  private readonly baseApiUrl = 'https://bnbexchange.rubic.exchange/api/v1/';
+export class CryptoTapService {
+  private readonly baseApiUrl = 'https://devbnbexchange.mywish.io/api/v1/';
 
   private isTestingMode: boolean;
 
@@ -38,10 +42,11 @@ export class GetBnbService {
     private httpService: HttpService,
     private web3PrivateService: Web3PrivateService,
     private web3PublicService: Web3PublicService,
-    private getBnbApiService: GetBnbApiService,
-    useTestingModeService: UseTestingModeService,
+    private cryptoTapApiService: CryptoTapApiService,
+    private readonly translateService: TranslateService,
     private readonly providerConnectorService: ProviderConnectorService,
-    private readonly errorService: ErrorsService
+    private readonly errorService: ErrorsService,
+    useTestingModeService: UseTestingModeService
   ) {
     this.contractAddress = contractAddressEthereum;
 
@@ -53,21 +58,26 @@ export class GetBnbService {
     });
   }
 
-  public getEstimatedAmount(swapToken: SwapToken): Observable<GetBnbToken> {
-    return this.httpService.get(`estimate_amount/${swapToken.symbol}/`, {}, this.baseApiUrl).pipe(
-      map((response: EstimatedAmountResponse) => ({
-        ...swapToken,
-        fromAmount: Web3PublicService.tokenWeiToAmount(
-          swapToken,
-          response.from_amount.toString()
-        ).toFixed(),
-        toAmount: Web3PublicService.tokenWeiToAmount(
-          swapToken,
-          response.to_amount.toString()
-        ).toFixed(),
-        fee: Web3PublicService.tokenWeiToAmount(swapToken, response.fee_amount.toString()).toFixed()
-      }))
-    );
+  public getEstimatedAmount(fromToken: SwapToken, toToken: SwapToken): Observable<CryptoTapToken> {
+    return this.httpService
+      .get(`estimate_amount/`, { fsym: fromToken.symbol, tsym: toToken.symbol }, this.baseApiUrl)
+      .pipe(
+        map((response: EstimatedAmountResponse) => ({
+          ...fromToken,
+          fromAmount: Web3PublicService.tokenWeiToAmount(
+            fromToken,
+            response.from_amount.toString()
+          ).toFixed(),
+          toAmount: Web3PublicService.tokenWeiToAmount(
+            toToken,
+            response.to_amount.toString()
+          ).toFixed(),
+          fee: Web3PublicService.tokenWeiToAmount(
+            fromToken,
+            response.fee_amount.toString()
+          ).toFixed()
+        }))
+      );
   }
 
   private checkSettings() {
@@ -88,7 +98,7 @@ export class GetBnbService {
     }
   }
 
-  protected async checkBalance(trade: GetBnbTrade): Promise<void> {
+  protected async checkBalance(trade: CryptoTapTrade): Promise<void> {
     const token = trade.fromToken;
     const { fromAmount } = trade.fromToken;
     const amountIn = Web3PublicService.tokenAmountToWei(token, fromAmount);
@@ -122,53 +132,54 @@ export class GetBnbService {
   }
 
   public async createTrade(
-    trade: GetBnbTrade,
+    trade: CryptoTapTrade,
     onTransactionHash: (hash: string) => void
-  ): Promise<string> {
+  ): Promise<TransactionReceipt> {
     this.checkSettings();
     await this.checkBalance(trade);
 
-    const token = trade.fromToken;
+    const { fromToken, toToken } = trade;
     const { fromAmount } = trade.fromToken;
-    let transactionHash: string;
-    if (token.symbol === 'ETH') {
-      const estimatedGas = '120000'; // TODO: хотфикс сломавшегося в метамаске рассчета газа
-      const receipt = await this.web3PrivateService.executeContractMethod(
+    const toNetwork = toToken.blockchain === BLOCKCHAIN_NAME.BINANCE_SMART_CHAIN ? 1 : 3;
+
+    let receipt: TransactionReceipt;
+    if (fromToken.symbol === 'ETH') {
+      const estimatedGas = '120000';
+      receipt = await this.web3PrivateService.executeContractMethod(
         this.contractAddress,
         ABI,
         'deposit',
-        [],
+        [toNetwork],
         {
-          value: Web3PublicService.tokenAmountToWei(token, fromAmount),
+          value: Web3PublicService.tokenAmountToWei(fromToken, fromAmount),
           onTransactionHash,
           gas: estimatedGas
         }
       );
-      transactionHash = receipt.transactionHash;
     } else {
-      await this.provideAllowance(token, onTransactionHash);
-      const receipt = await this.web3PrivateService.executeContractMethod(
+      await this.provideAllowance(fromToken, onTransactionHash);
+      receipt = await this.web3PrivateService.executeContractMethod(
         this.contractAddress,
         ABI,
         'depositToken',
-        [token.address],
+        [fromToken.address, toNetwork],
         {
           onTransactionHash
         }
       );
-      transactionHash = receipt.transactionHash;
     }
 
-    this.getBnbApiService.notifyGetBnbBot(
+    this.cryptoTapApiService.notifyCryptoTapBot(
       trade,
-      transactionHash,
+      receipt.transactionHash,
       this.providerConnectorService.address
     );
-    return transactionHash;
+
+    return receipt;
   }
 
   private async provideAllowance(
-    token: GetBnbToken,
+    token: CryptoTapToken,
     onTransactionHash: (hash: string) => void
   ): Promise<void> {
     const web3Public: Web3Public = this.web3PublicService[BLOCKCHAIN_NAME.ETHEREUM];

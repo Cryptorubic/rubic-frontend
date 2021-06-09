@@ -1,25 +1,28 @@
 import { AsyncPipe, DOCUMENT } from '@angular/common';
 import { ChangeDetectorRef, Inject, Injectable } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { List } from 'immutable';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { BLOCKCHAIN_NAME } from 'src/app/shared/models/blockchain/BLOCKCHAIN_NAME';
 import SwapToken from 'src/app/shared/models/tokens/SwapToken';
 import { BridgeToken } from 'src/app/features/cross-chain-swaps-page/bridge-page/models/BridgeToken';
 import { skip, take } from 'rxjs/operators';
-import { TOKEN_RANK } from 'src/app/shared/models/tokens/token-rank';
+import { TranslateService } from '@ngx-translate/core';
 import { TokensService } from '../backend/tokens-service/tokens.service';
 import { Web3PublicService } from '../blockchain/web3-public-service/web3-public.service';
 import { Web3Public } from '../blockchain/web3-public-service/Web3Public';
 import { TradeParametersService } from '../swaps/trade-parameters-service/trade-parameters.service';
 import { TradeTypeService } from '../swaps/trade-type-service/trade-type.service';
 import { QueryParams } from './models/query-params';
+import { TOKEN_RANK } from '../../../shared/models/tokens/token-rank';
+import { languagesList } from '../../header/models/languages-list';
 
 type DefaultQueryParams = {
   [BLOCKCHAIN_NAME.ETHEREUM]: QueryParams;
   [BLOCKCHAIN_NAME.BINANCE_SMART_CHAIN]: QueryParams;
   [BLOCKCHAIN_NAME.POLYGON]: QueryParams;
   bridge: QueryParams;
+  cryptoTap: QueryParams;
 };
 
 @Injectable({
@@ -62,7 +65,9 @@ export class QueryParamsService {
     private readonly tradeTypeService: TradeTypeService,
     private readonly web3Public: Web3PublicService,
     @Inject(DOCUMENT) private document: Document,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly aRoute: ActivatedRoute,
+    private translateService: TranslateService
   ) {
     this.$themeSubject = new BehaviorSubject<string>('default');
     this.$isIframeSubject = new BehaviorSubject<boolean>(false);
@@ -86,7 +91,12 @@ export class QueryParamsService {
         amount: '1'
       },
       bridge: {
-        chain: BLOCKCHAIN_NAME.ETHEREUM
+        fromBlockchain: BLOCKCHAIN_NAME.ETHEREUM,
+        toBlockchain: BLOCKCHAIN_NAME.BINANCE_SMART_CHAIN
+      },
+      cryptoTap: {
+        toBlockchain: BLOCKCHAIN_NAME.BINANCE_SMART_CHAIN,
+        fromToken: 'RBC'
       }
     };
   }
@@ -129,14 +139,20 @@ export class QueryParamsService {
 
   public initiateBridgeParams(params: QueryParams): void {
     this.currentQueryParams = {
-      from: params.from || this.defaultQueryParams.bridge.from,
-      amount: params.amount || this.defaultQueryParams.bridge.amount,
-      chain: params.chain || this.defaultQueryParams.bridge.chain
+      fromBlockchain: params.fromBlockchain || this.defaultQueryParams.bridge.fromBlockchain,
+      toBlockchain: params.toBlockchain || this.defaultQueryParams.bridge.toBlockchain
+    };
+  }
+
+  public initiateCryptoTapParams(params: QueryParams): void {
+    this.currentQueryParams = {
+      toBlockchain: params.toBlockchain || this.defaultQueryParams.cryptoTap.fromBlockchain,
+      fromToken: params.fromToken || this.defaultQueryParams.cryptoTap.fromToken
     };
   }
 
   private async getToken(
-    tokenType: 'from' | 'to',
+    tokenType: 'from' | 'to' | 'fromToken',
     cdr: ChangeDetectorRef
   ): Promise<SwapToken | undefined> {
     const tokenInfo = this.currentQueryParams[tokenType];
@@ -206,14 +222,17 @@ export class QueryParamsService {
       const hasParams = Object.keys(queryParams).length !== 0;
       if (hasParams && route === '') {
         this.initiateTradesParams(queryParams);
-      } else if (hasParams) {
+      } else if (hasParams && route === 'cross-chain/bridge') {
         this.initiateBridgeParams(queryParams);
+      } else if (hasParams && route === 'cross-chain/crypto-tap') {
+        this.initiateCryptoTapParams(queryParams);
       }
     }
   }
 
   public isAddress(token: string): boolean {
-    const web3Public: Web3Public = this.web3Public[this.currentQueryParams.chain];
+    const chain = this.currentQueryParams.chain || this.currentQueryParams.fromBlockchain;
+    const web3Public: Web3Public = this.web3Public[chain];
     return web3Public.isAddressCorrect(token);
   }
 
@@ -236,34 +255,34 @@ export class QueryParamsService {
     isBridge?: boolean
   ): SwapToken {
     const tokens = tokensList || new AsyncPipe(cdr).transform(this.$tokens);
-    const similarTokens = tokens.filter(token =>
-      isBridge
-        ? (token as BridgeToken).blockchainToken[this.currentQueryParams.chain].symbol ===
-          queryParam
+    const similarTokens = tokens.filter(token => {
+      return isBridge
+        ? (token as BridgeToken).blockchainToken[this.currentQueryParams.fromBlockchain].symbol ===
+            queryParam
         : (token as SwapToken).symbol === queryParam &&
-          token.blockchain === this.currentQueryParams.chain
-    );
+            token.blockchain === this.currentQueryParams.chain;
+    });
 
     return similarTokens.size > 1
       ? similarTokens.find(token => token.used_in_iframe)
       : similarTokens.first();
   }
 
-  public async searchTokenByAddress(
+  public searchTokenByAddress(
     queryParam: string,
     cdr: ChangeDetectorRef,
     tokensList?: List<any>,
     isBridge?: boolean
-  ): Promise<SwapToken> {
+  ): SwapToken {
     const tokens = tokensList || new AsyncPipe(cdr).transform(this.$tokens);
     const searchingToken = tokens.find(token =>
       isBridge
-        ? (token as BridgeToken).blockchainToken[this.currentQueryParams.chain].address ===
+        ? (token as BridgeToken).blockchainToken[this.currentQueryParams.fromBlockchain].address ===
           queryParam
         : token.address === queryParam && token.blockchain === this.currentQueryParams.chain
     );
 
-    return searchingToken || (await this.getCustomToken(queryParam));
+    return searchingToken;
   }
 
   public async getCustomToken(address: string): Promise<SwapToken> {
@@ -287,7 +306,8 @@ export class QueryParamsService {
   private navigate(): void {
     this.router.navigate([], {
       queryParams: this.currentQueryParams,
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
+      relativeTo: this.aRoute
     });
   }
 
@@ -309,13 +329,24 @@ export class QueryParamsService {
         };
   }
 
-  public clearCurrentParams() {
+  public clearTradesParams() {
     this.currentQueryParams = {
       ...this.currentQueryParams,
       from: null,
       to: null,
       amount: null,
       chain: null
+    };
+    this.navigate();
+  }
+
+  public clearBridgeParams() {
+    this.currentQueryParams = {
+      ...this.currentQueryParams,
+      fromBlockchain: null,
+      toBlockchain: null,
+      fromToken: null,
+      amount: null
     };
     this.navigate();
   }

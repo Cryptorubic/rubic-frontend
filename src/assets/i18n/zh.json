@@ -333,8 +333,8 @@
     "progressMessage": "您已经接受了交易，交易已经开始。请等待，直到交易完成。",
     "successMessage": "跨链交换的过程已经开始。请等待双方区块链完成交易。",
     "tableTitle": "您的跨鏈互換",
-    "whatIs": "什麼是幣安智能鏈？",
-    "whatIsAfter": "是什么",
+    "whatIs": "什么是 ",
+    "whatIsAfter": "?",
     "checkOn": "檢查 ",
     "assistanceOf": "在...的協助下",
     "getTokens": "您將獲得 {{ toBlockchainName }} 個令牌到所選地址",
@@ -342,7 +342,7 @@
     "maxAmount": "最高金額 ",
     "createBridge": "Create Bridge",
     "erc": "If your project is ERC-20 and you would like to create a wrapped version on BSC, to be added to Rubics bridge - please contact us.",
-    "getBNB": "Get BNB",
+    "cryptoTap": "Crypto Tap",
     "bridge": "Bridge"
   },
   "instantTrades": {

@@ -334,7 +334,7 @@
     "successMessage": "Начался процесс cross-chain обмена. Пожалуйста, подождите, пока сделка не будет завершена обеими блокчейнами.",
     "tableTitle": "Ваши кросс-чейн обмены",
     "whatIs": "Что такое ",
-    "whatIsAfter": "",
+    "whatIsAfter": "?",
     "checkOn": "Check on ",
     "assistanceOf": "С помощью",
     "getTokens": "Вы получите {{ toBlockchainName }} токены на выбранный адрес",
@@ -342,7 +342,7 @@
     "maxAmount": "Максимальная сумма ",
     "createBridge": "Create Bridge",
     "erc": "If your project is ERC-20 and you would like to create a wrapped version on BSC, to be added to Rubics bridge - please contact us.",
-    "getBNB": "Get BNB",
+    "cryptoTap": "Crypto Tap",
     "bridge": "Bridge"
   },
   "instantTrades": {
@@ -401,7 +401,7 @@
     "createTrade": "Создайте свою Сделку",
     "swapToggleText": "Кросс-чейн обмены",
     "tradesDisclaimer": {
-      "beforeText": "Используя нашу платформу , вы соглашаетесь со следующими",
+      "beforeText": "Используя нашу платформу, вы соглашаетесь со следующими",
       "termsAndConditions": "условиями и положениями.",
       "afterText": ""
     },

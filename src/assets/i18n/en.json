@@ -334,7 +334,7 @@
     "successMessage": "The process of cross-chain swapping has started. Please wait until the trade is completed by both blockchains.",
     "tableTitle": "Your cross-chain swaps",
     "whatIs": "What is ",
-    "whatIsAfter": "",
+    "whatIsAfter": "?",
     "checkOn": "Check on ",
     "assistanceOf": "With the assistance of",
     "getTokens": "You will get {{ toBlockchainName }} tokens to the selected address",
@@ -342,7 +342,7 @@
     "maxAmount": "Maximum amount ",
     "createBridge": "Create Bridge",
     "erc": "If your project is ERC-20 and you would like to create a wrapped version on BSC, to be added to Rubics bridge - please contact us.",
-    "getBNB": "Get BNB",
+    "cryptoTap": "Crypto Tap",
     "bridge": "Bridge"
   },
   "instantTrades": {

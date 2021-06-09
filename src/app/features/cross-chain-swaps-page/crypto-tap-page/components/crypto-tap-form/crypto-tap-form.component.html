@@ -2,7 +2,7 @@
   <div class="cross-chain-form__swap-section swap-section">
     <!-- From -->
     <div class="swap-section__box swap-box">
-      <div class="swap-box__title">From</div>
+      <div class="swap-box__title">{{ 'common.from' | translate }}</div>
 
       <div class="swap-box__blockchain-section form-field">
         <app-blockchain-select
@@ -19,26 +19,26 @@
         [isWithEditing]="false"
       ></app-wallet-address-form>
 
-      <div class="swap-box__title">You have</div>
+      <div class="swap-box__title">{{ 'common.have' | translate }}</div>
 
       <div class="swap-box__token-section form-field">
         <app-tokens-input
           [amountInputDisabled]="true"
           amountPlaceholder=""
           [tokensList]="fromTokensList"
-          [selectedToken]="getBnbTrade.fromToken"
+          [selectedToken]="cryptoTapTrade.fromToken"
           [tokensInputDisabled]="true"
-          [selectedAmount]="getBnbTrade.fromToken?.fromAmount"
-          (tokenChanges)="onSelectedFromTokenChanges($event)"
+          [selectedAmount]="cryptoTapTrade.fromToken?.fromAmount"
+          (tokenChanges)="onFromTokenChanges($event)"
         ></app-tokens-input>
       </div>
 
       <div
         class="swap-box__scanner-link-container"
-        [ngClass]="{ 'swap-box__scanner-link-container_hidden': !getBnbTrade.fromToken }"
+        [ngClass]="{ 'swap-box__scanner-link-container_hidden': !cryptoTapTrade.fromToken }"
       >
         <app-scanner-link
-          [address]="getBnbTrade.fromToken?.address"
+          [address]="cryptoTapTrade.fromToken?.address"
           [blockchainName]="fromBlockchain.key"
           [addressType]="ADDRESS_TYPE.TOKEN"
           [scannerLabel]="fromBlockchain.scannerLabel"
@@ -46,11 +46,11 @@
         </app-scanner-link>
       </div>
 
-      <div class="swap-box__fee-info fee-info" *ngIf="getBnbTrade.fromToken?.fee">
+      <div class="swap-box__fee-info fee-info" *ngIf="cryptoTapTrade.fromToken?.fee">
         <button
           class="fee-info__switch-button"
           type="button"
-          *ngIf="getBnbTrade.fromToken.symbol === 'ETH' && getFeesDifferencePercent()?.gt(0)"
+          *ngIf="cryptoTapTrade.fromToken.symbol === 'ETH' && getFeesDifferencePercent()?.gt(0)"
           (click)="switchToRbc()"
         >
           Use RBС for Low Fees
@@ -58,7 +58,7 @@
 
         <span
           class="fee-info__discount-info"
-          *ngIf="getBnbTrade.fromToken.symbol === 'RBC' && getFeesDifferencePercent()?.gt(0)"
+          *ngIf="cryptoTapTrade.fromToken.symbol === 'RBC' && getFeesDifferencePercent()?.gt(0)"
         >
           <img alt="Success tick" src="assets/images/icons/cross-chain-swaps/tick.svg" />{{
             getFeesDifferencePercent().toFixed(0)
@@ -67,9 +67,11 @@
 
         <span class="fee-info__fee-amount"
           >Provider fee:
-          {{ getBnbTrade.fromToken.fee + ' ' + getBnbTrade.fromToken.symbol }} &asymp;
+          {{ cryptoTapTrade.fromToken.fee + ' ' + cryptoTapTrade.fromToken.symbol }} &asymp;
           {{
-            getFeePrice(getBnbTrade.fromToken.fee, getBnbTrade.fromToken.price).dp(2).toFixed()
+            getFeePrice(cryptoTapTrade.fromToken.fee, cryptoTapTrade.fromToken.price)
+              .dp(2)
+              .toFixed()
           }}&#36;
         </span>
       </div>
@@ -77,13 +79,13 @@
 
     <!-- To -->
     <div class="swap-section__box swap-box">
-      <div class="swap-box__title">To</div>
+      <div class="swap-box__title">{{ 'common.to' | translate }}</div>
 
       <div class="swap-box__blockchain-section form-field">
         <app-blockchain-select
-          [blockchains]="blockchainsList"
+          [blockchains]="toBlockchainsList"
           [selectedBlockchain]="toBlockchain"
-          [disabled]="true"
+          (blockchainChanges)="onToBlockchainChanges($event)"
         ></app-blockchain-select>
       </div>
 
@@ -94,22 +96,22 @@
         [isWithEditing]="false"
       ></app-wallet-address-form>
 
-      <div class="swap-box__title">You get</div>
+      <div class="swap-box__title">{{ 'common.get' | translate }}</div>
 
       <div class="swap-box__token-section token-chosen">
         <span class="token-chosen__amount">{{
-          getBnbTrade.fromToken?.toAmount | bigNumberFormat
+          cryptoTapTrade.fromToken?.toAmount | bigNumberFormat
         }}</span>
 
         <div class="token-chosen__card token-card">
-          <img class="token-card__icon" [src]="getBnbTrade.toToken?.image" alt="Blockchain" />
-          <span class="token-card__name">{{ getBnbTrade.toToken?.symbol }}</span>
+          <img class="token-card__icon" [src]="cryptoTapTrade.toToken?.image" alt="To token" />
+          <span class="token-card__name">{{ cryptoTapTrade.toToken?.symbol }}</span>
         </div>
       </div>
 
       <div class="swap-box__scanner-link-container">
         <app-scanner-link
-          [address]="NATIVE_TOKEN_ADDRESS"
+          [address]="cryptoTapTrade.toToken?.address"
           [blockchainName]="toBlockchain.key"
           [addressType]="ADDRESS_TYPE.TOKEN"
           [scannerLabel]="toBlockchain.scannerLabel"
@@ -118,7 +120,8 @@
       </div>
 
       <a class="swap-box__blockchain-link" href="https://www.binance.org/" target="_blank">
-        What is Binance Smart Chain?
+        {{ 'bridgePage.whatIs' | translate }}
+        {{ BLOCKCHAINS_DATA[toBlockchain.key]?.caption }}{{ 'bridgePage.whatIsAfter' | translate }}
       </a>
     </div>
   </div>
@@ -127,11 +130,11 @@
     <app-primary-button
       class="cross-chain-form__confirm-button"
       type="button"
-      label="Get BNB"
-      [disabled]="!getBnbTrade.fromToken"
+      label="Get Crypto"
+      [disabled]="!cryptoTapTrade.fromToken"
       [animate]="
-        getBnbTrade.status === GET_BNB_TRADE_STATUS.CALCULATION ||
-        getBnbTrade.status === GET_BNB_TRADE_STATUS.TX_IN_PROGRESS
+        cryptoTapTrade.status === CRYPTO_TAP_TRADE_STATUS.CALCULATION ||
+        cryptoTapTrade.status === CRYPTO_TAP_TRADE_STATUS.TX_IN_PROGRESS
       "
       (onClick)="createTrade()"
     >
@@ -140,11 +143,11 @@
 </form>
 
 <app-trade-in-progress-modal
-  *ngIf="getBnbTrade.status === GET_BNB_TRADE_STATUS.TX_IN_PROGRESS"
+  *ngIf="cryptoTapTrade.status === CRYPTO_TAP_TRADE_STATUS.TX_IN_PROGRESS"
 ></app-trade-in-progress-modal>
 
 <app-trade-success-modal
-  *ngIf="getBnbTrade.status === GET_BNB_TRADE_STATUS.COMPLETED"
+  *ngIf="cryptoTapTrade.status === CRYPTO_TAP_TRADE_STATUS.COMPLETED"
   [txId]="tradeSuccessId"
   (onCloseEvent)="tradeSuccessId = null"
 ></app-trade-success-modal>

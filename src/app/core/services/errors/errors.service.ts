@@ -9,7 +9,7 @@ import { RubicError } from 'src/app/shared/models/errors/RubicError';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, throwError } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { NotSupportedNetworkError } from '../../../shared/models/errors/provider/NotSupportedNetwork';
+import { NotSupportedNetworkError } from 'src/app/shared/models/errors/provider/NotSupportedNetwork';
 import InsufficientFundsError from '../../../shared/models/errors/instant-trade/InsufficientFundsError';
 
 type ErrorModalTitle = 'error' | 'warning';

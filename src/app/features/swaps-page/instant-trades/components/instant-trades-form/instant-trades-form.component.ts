@@ -332,7 +332,7 @@ export class InstantTradesFormComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this._tokensSubscription$.unsubscribe();
     this._blockchainSubscription$.unsubscribe();
-    this.queryParamsService.clearCurrentParams();
+    this.queryParamsService.clearTradesParams();
   }
 
   private setupTokens(tokens: List<SwapToken>): void {
