@@ -7,7 +7,7 @@ interface BlockchainToken extends TokenAmount {
 }
 
 export type BlockchainsTokens = {
-  [blockchain in BLOCKCHAIN_NAME]: BlockchainToken;
+  [blockchain in BLOCKCHAIN_NAME]?: BlockchainToken;
 };
 
 export interface BridgeToken {

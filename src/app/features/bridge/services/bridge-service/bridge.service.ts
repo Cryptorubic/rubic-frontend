@@ -28,6 +28,7 @@ import { BridgeTrade } from 'src/app/features/bridge/models/BridgeTrade';
 import { TokensService } from 'src/app/core/services/tokens/tokens.service';
 import { UndefinedError } from 'src/app/core/errors/models/undefined.error';
 import { RubicError } from 'src/app/core/errors/models/RubicError';
+import { BinancePolygonBridgeProviderService } from 'src/app/features/bridge/services/bridge-service/blockchains-bridge-provider/binance-polygon-bridge-provider/binance-polygon-bridge-provider.service';
 import { SwapFormService } from '../../../swaps/services/swaps-form-service/swap-form.service';
 import { BridgeToken } from '../../models/BridgeToken';
 import { BridgeTradeRequest } from '../../models/BridgeTradeRequest';
@@ -54,6 +55,7 @@ export class BridgeService {
     private readonly ethereumTronBridgeProviderService: EthereumTronBridgeProviderService,
     private readonly ethereumXdaiBridgeProviderService: EthereumXdaiBridgeProviderService,
     private readonly binanceTronBridgeProviderService: BinanceTronBridgeProviderService,
+    private readonly binancePolygonProviderService: BinancePolygonBridgeProviderService,
     private readonly authService: AuthService,
     private readonly web3PublicService: Web3PublicService,
     private readonly providerConnectorService: ProviderConnectorService,
@@ -87,10 +89,12 @@ export class BridgeService {
       },
       [BLOCKCHAIN_NAME.BINANCE_SMART_CHAIN]: {
         [BLOCKCHAIN_NAME.ETHEREUM]: this.ethereumBinanceBridgeProviderService,
+        [BLOCKCHAIN_NAME.POLYGON]: this.binancePolygonProviderService,
         [BLOCKCHAIN_NAME.TRON]: this.binanceTronBridgeProviderService
       },
       [BLOCKCHAIN_NAME.POLYGON]: {
-        [BLOCKCHAIN_NAME.ETHEREUM]: this.ethereumPolygonBridgeProviderService
+        [BLOCKCHAIN_NAME.ETHEREUM]: this.ethereumPolygonBridgeProviderService,
+        [BLOCKCHAIN_NAME.BINANCE_SMART_CHAIN]: this.binancePolygonProviderService
       }
     };
   }
@@ -144,13 +148,13 @@ export class BridgeService {
 
     return this.getCurrentBridgeToken().pipe(
       mergeMap(bridgeToken => {
-        const { toBlockchain } = this.swapFormService.commonTrade.value.input;
+        const { toBlockchain, fromAmount } = this.swapFormService.commonTrade.controls.input.value;
 
-        if (!bridgeToken) {
+        if (!bridgeToken || !fromAmount) {
           return of(null);
         }
 
-        return this.bridgeProvider.getFee(bridgeToken, toBlockchain);
+        return this.bridgeProvider.getFee(bridgeToken, toBlockchain, fromAmount);
       }),
       first()
     );

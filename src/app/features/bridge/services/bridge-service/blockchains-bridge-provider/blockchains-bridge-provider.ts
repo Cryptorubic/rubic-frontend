@@ -5,6 +5,7 @@ import { TransactionReceipt } from 'web3-eth';
 import { BridgeToken } from 'src/app/features/bridge/models/BridgeToken';
 import { BridgeTrade } from 'src/app/features/bridge/models/BridgeTrade';
 import { BRIDGE_PROVIDER } from 'src/app/shared/models/bridge/BRIDGE_PROVIDER';
+import BigNumber from 'bignumber.js';
 
 export abstract class BlockchainsBridgeProvider {
   protected tokens$ = new Subject<List<BridgeToken>>();
@@ -25,9 +26,14 @@ export abstract class BlockchainsBridgeProvider {
    * @description get price blockchain provider's fee
    * @param token bridge token
    * @param toBlockchain destination blockchain
+   * @param amount swap input amount
    * @return observable number fee price
    */
-  public abstract getFee(token: BridgeToken, toBlockchain: BLOCKCHAIN_NAME): Observable<number>;
+  public abstract getFee(
+    token: BridgeToken,
+    toBlockchain: BLOCKCHAIN_NAME,
+    amount?: BigNumber
+  ): Observable<number>;
 
   /**
    * @description create trade between different networks

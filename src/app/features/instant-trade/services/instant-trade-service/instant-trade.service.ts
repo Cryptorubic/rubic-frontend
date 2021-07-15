@@ -18,7 +18,7 @@ import { TO_BACKEND_BLOCKCHAINS } from 'src/app/shared/constants/blockchain/BACK
 import { OneInchBscService } from 'src/app/features/instant-trade/services/instant-trade-service/providers/one-inch-bsc-service/one-inch-bsc.service';
 import { ItProvider } from 'src/app/features/instant-trade/services/instant-trade-service/models/it-provider';
 import { INSTANT_TRADES_PROVIDER } from 'src/app/shared/models/instant-trade/INSTANT_TRADES_PROVIDER';
-import { InstantTradesPostApi } from 'src/app/core/services/backend/instant-trades-api/types/InstantTradesPostApi';
+import { InstantTradesPostApi } from 'src/app/core/services/backend/instant-trades-api/models/InstantTradesPostApi';
 import InstantTrade from 'src/app/features/instant-trade/models/InstantTrade';
 import { TranslateService } from '@ngx-translate/core';
 import TransactionRevertedError from 'src/app/core/errors/models/common/transaction-reverted.error';

@@ -12,6 +12,7 @@ import {
 } from 'src/app/core/services/backend/bridge-api/models/BridgeTableTradeApi';
 import { TRANSACTION_STATUS } from 'src/app/shared/models/blockchain/TRANSACTION_STATUS';
 import { TokensService } from 'src/app/core/services/tokens/tokens.service';
+import { BridgeBotRequest } from 'src/app/core/services/backend/bridge-api/models/BridgeBotRequest';
 import { HttpService } from '../../http/http.service';
 import { BOT_URL } from '../constants/BOT_URL';
 
@@ -202,6 +203,30 @@ export class BridgeApiService {
     });
   }
 
+  public postEvoTransaction(
+    transactionHash: string,
+    fromBlockchain: BLOCKCHAIN_NAME
+  ): Promise<void> {
+    const body = {
+      type: 'evodefi',
+      fromNetwork:
+        fromBlockchain === BLOCKCHAIN_NAME.BINANCE_SMART_CHAIN ? 'binance-smart-chain' : 'polygon',
+      transaction_id: transactionHash
+    };
+
+    return new Promise<void>((resolve, reject) => {
+      this.httpService.post('bridges/transactions', body).subscribe(
+        () => {
+          resolve();
+        },
+        error => {
+          console.error(error);
+          reject(error);
+        }
+      );
+    });
+  }
+
   public notifyBridgeBot(
     bridgeTrade: BridgeTrade,
     transactionHash: string,
@@ -211,10 +236,10 @@ export class BridgeApiService {
       .pipe(
         first(),
         mergeMap(price => {
-          const body = {
-            track: transactionHash,
+          const body: BridgeBotRequest = {
+            txHash: transactionHash,
             walletAddress,
-            amount: bridgeTrade.amount,
+            amount: bridgeTrade.amount.toNumber(),
             fromBlockchain: bridgeTrade.fromBlockchain,
             toBlockchain: bridgeTrade.toBlockchain,
             symbol: bridgeTrade.token.symbol,
@@ -238,7 +263,7 @@ export class BridgeApiService {
           )
           .filter(it => it)
           .sort((a, b) => b - a);
-        return prices[0];
+        return prices[0] || 0;
       })
     );
   }

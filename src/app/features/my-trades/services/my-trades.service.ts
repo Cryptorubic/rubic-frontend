@@ -115,10 +115,7 @@ export class MyTradesService {
   private prepareBridgeData(trade: TableTrade): TableTrade {
     let fromSymbol = trade.fromToken.symbol;
     let toSymbol = trade.toToken.symbol;
-    if (
-      trade.fromToken.blockchain === BLOCKCHAIN_NAME.POLYGON ||
-      trade.toToken.blockchain === BLOCKCHAIN_NAME.POLYGON
-    ) {
+    if (trade.provider === 'polygon') {
       fromSymbol = this.tokens.find(
         token =>
           token.blockchain === trade.fromToken.blockchain &&

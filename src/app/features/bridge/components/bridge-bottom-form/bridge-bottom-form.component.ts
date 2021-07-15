@@ -94,7 +94,7 @@ export class BridgeBottomFormComponent implements OnInit, OnDestroy {
   get whatIsBlockchain(): BlockchainInfo {
     const { fromBlockchain, toBlockchain } = this.swapFormService.commonTrade.controls.input.value;
     const nonEthBlockchain =
-      fromBlockchain === BLOCKCHAIN_NAME.ETHEREUM ? toBlockchain : fromBlockchain;
+      toBlockchain === BLOCKCHAIN_NAME.ETHEREUM ? fromBlockchain : toBlockchain;
     return BLOCKCHAINS_INFO[nonEthBlockchain];
   }
 

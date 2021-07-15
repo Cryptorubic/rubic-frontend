@@ -24,6 +24,10 @@ const BRIDGE_PROVIDERS: Record<BRIDGE_PROVIDER, Provider> = {
   [BRIDGE_PROVIDER.XDAI]: {
     name: 'XDai',
     image: `${imageBasePath}xdai.svg`
+  },
+  [BRIDGE_PROVIDER.EVO]: {
+    name: 'Evo',
+    image: `${imageBasePath}evo.svg`
   }
 };
 

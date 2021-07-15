@@ -4,9 +4,11 @@ import { delay, map } from 'rxjs/operators';
 import { FROM_BACKEND_BLOCKCHAINS } from 'src/app/shared/constants/blockchain/BACKEND_BLOCKCHAINS';
 import { BLOCKCHAIN_NAME } from 'src/app/shared/models/blockchain/BLOCKCHAIN_NAME';
 import { TableToken, TableTrade } from 'src/app/shared/models/my-trades/TableTrade';
-import { InstantTradesPostApi } from 'src/app/core/services/backend/instant-trades-api/types/InstantTradesPostApi';
-import { InstantTradesResponseApi } from 'src/app/core/services/backend/instant-trades-api/types/InstantTradesResponseApi';
+import { InstantTradesPostApi } from 'src/app/core/services/backend/instant-trades-api/models/InstantTradesPostApi';
+import { InstantTradesResponseApi } from 'src/app/core/services/backend/instant-trades-api/models/InstantTradesResponseApi';
 import InstantTrade from 'src/app/features/instant-trade/models/InstantTrade';
+import { INSTANT_TRADES_PROVIDER } from 'src/app/shared/models/instant-trade/INSTANT_TRADES_PROVIDER';
+import { InstantTradeBotRequest } from 'src/app/core/services/backend/instant-trades-api/models/InstantTradesBotRequest';
 import { HttpService } from '../../http/http.service';
 import { BOT_URL } from '../constants/BOT_URL';
 import { Web3PublicService } from '../../blockchain/web3-public-service/web3-public.service';
@@ -39,20 +41,20 @@ export class InstantTradesApiService {
   }
 
   public notifyInstantTradesBot(body: {
-    provider: string;
+    provider: INSTANT_TRADES_PROVIDER;
     blockchain: BLOCKCHAIN_NAME;
     walletAddress: string;
     trade: InstantTrade;
     txHash: string;
   }): Promise<void> {
     const { trade, ...props } = body;
-    const req = {
+    const req: InstantTradeBotRequest = {
       ...props,
-      amountFrom: trade.from.amount,
-      amountTo: trade.to.amount,
-      symbolFrom: trade.from.token.symbol,
-      symbolTo: trade.to.token.symbol,
-      tokenFromUsdPrice: trade.from.token.price
+      fromAmount: trade.from.amount.div(10 ** trade.from.token.decimals).toNumber(),
+      toAmount: trade.to.amount.div(10 ** trade.to.token.decimals).toNumber(),
+      fromSymbol: trade.from.token.symbol,
+      toSymbol: trade.to.token.symbol,
+      price: trade.from.token.price
     };
 
     return this.httpService.post(BOT_URL.INSTANT_TRADES, req).toPromise();

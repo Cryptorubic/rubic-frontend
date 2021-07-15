@@ -5,12 +5,13 @@ import { IBlockchain } from 'src/app/shared/models/blockchain/IBlockchain';
 import { BLOCKCHAIN_NAME } from 'src/app/shared/models/blockchain/BLOCKCHAIN_NAME';
 import { BlockchainTokenExtended } from 'src/app/shared/models/tokens/BlockchainTokenExtended';
 import { AbiItem } from 'web3-utils';
-import { NATIVE_TOKEN_ADDRESS } from 'src/app/shared/constants/blockchain/NATIVE_TOKEN_ADDRESS';
+import { BlockTransactionString } from 'web3-eth';
 import ERC20_TOKEN_ABI from '../constants/erc-20-abi';
 import MULTICALL_ABI from '../constants/multicall-abi';
 import { Call } from '../types/call';
 import { MULTICALL_ADDRESSES, MULTICALL_ADDRESSES_TESTNET } from '../constants/multicall-addresses';
 import { UseTestingModeService } from '../../use-testing-mode/use-testing-mode.service';
+import { NATIVE_TOKEN_ADDRESS } from 'src/app/shared/constants/blockchain/NATIVE_TOKEN_ADDRESS';
 
 export class Web3Public {
   private multicallAddresses: { [k in BLOCKCHAIN_NAME]?: string };
@@ -66,6 +67,10 @@ export class Web3Public {
       balance = await this.getTokenBalance(userAddress, tokenAddress);
     }
     return new BigNumber(balance);
+  }
+
+  public getBlock(): Promise<BlockTransactionString> {
+    return this.web3.eth.getBlock('latest');
   }
 
   /**
@@ -319,6 +324,29 @@ export class Web3Public {
     }
 
     return tokensBalances;
+  }
+
+  public async multicallContractMethod<Output>(
+    contractAddress: string,
+    contractAbi: AbiItem[],
+    methodName: string,
+    methodCallsArguments: (string | number)[][]
+  ): Promise<Output[]> {
+    const contract = new this.web3.eth.Contract(contractAbi, contractAddress);
+    const calls: Call[] = methodCallsArguments.map(callArguments => ({
+      callData: contract.methods[methodName](...callArguments).encodeABI(),
+      target: contractAddress
+    }));
+
+    const outputs = await this.multicall(calls);
+
+    const methodOutputAbi = contractAbi.find(
+      funcSignature => funcSignature.name === methodName
+    ).outputs;
+
+    return outputs.map(
+      outputHex => this.web3.eth.abi.decodeParameters(methodOutputAbi, outputHex) as Output
+    );
   }
 
   private async multicall(calls: Call[]): Promise<string[]> {
