@@ -1,7 +1,7 @@
 {
   "volume": {
-    "instantTradesVolume": "$11,281,867",
-    "bridgeVolume": "$10,294,546"
+    "instantTradesVolume": "$11,422,947",
+    "bridgeVolume": "$10,499,610"
   },
   "team": [
     {
@@ -111,6 +111,17 @@
         {
           "icon": "Github.svg",
           "url": "https://github.com/jetvolkov"
+        }
+      ]
+    },
+    {
+      "img": "AleksandrM.jpg",
+      "name": "Alexandr Menshikov",
+      "role": "Backend Developer",
+      "links": [
+        {
+          "icon": "Github.svg",
+          "url": "https://github.com/realhum"
         }
       ]
     },
